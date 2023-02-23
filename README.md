@@ -2,7 +2,7 @@
 Repository challenge platinum data-science dari kelompok 4 yang berisi  
 API untuk analisis sentimen dan laporan hasil analisis data berdasarkan sentimen.
 
-## Install
+## Install & Run
 Clone repository dan cd folder
 ```
 git clone git@github.com:brndnart/dsc-k4.git
@@ -18,3 +18,8 @@ Install modul dengan pip
 ```
 python -m pip install -r requirements.txt
 ```
+Jalankan script
+```
+python -m flask --app app.py run --debug
+```
+
