@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
-
+import chardet
 import pickle, re
 import numpy as np
 import tensorflow as tf
@@ -49,9 +49,9 @@ neural_network_model_file.close()
 
 # Neural Network API
 
-@swag_from("./docs/neural_network.yml", methods=["POST"])
-@app.route("/neural_network", methods=["POST"])
-def neural_network():
+@swag_from("./docs/neural_network_text.yml", methods=["POST"])
+@app.route("/neural_network_text", methods=["POST"])
+def neural_network_text():
     text_input = request.form.get("text")
     text = [cleansing(text_input)]
 
@@ -60,8 +60,31 @@ def neural_network():
 
     json_res = {
         "status_code": 200,
-        "description": "Result of Sentiment Analysis using Neural Network",
+        "description": "Result of Sentiment Analysis using Neural Network with text input",
         "data": {"text": text[0], "sentiment": get_sentiment},
+    }
+
+    res_data = jsonify(json_res)
+
+    return res_data
+
+@swag_from("./docs/neural_network_file.yml", methods=["POST"])
+@app.route("/neural_network_file", methods=["POST"])
+def neural_network_file():
+    file_input = request.files.getlist('file')[0]
+    file_content = file_input.read()
+    encoding = chardet.detect(file_content)["encoding"]
+    file_content = file_content.decode(encoding)
+
+    file = [cleansing(file_content)]
+
+    feature = neural_network_feature.transform(file)
+    get_sentiment = neural_network_model.predict(feature)[0]
+
+    json_res = {
+        "status_code": 200,
+        "description": "Result of Sentiment Analysis using Neural Network with file input",
+        "data": {"text": file[0], "sentiment": get_sentiment},
     }
 
     res_data = jsonify(json_res)
@@ -82,9 +105,9 @@ lstm_model = tf.keras.models.load_model("./lstm/model.h5")
 
 # LSTM API
 
-@swag_from("./docs/lstm.yml", methods=["POST"])
-@app.route("/lstm", methods=["POST"])
-def lstm():
+@swag_from("./docs/lstm_text.yml", methods=["POST"])
+@app.route("/lstm_text", methods=["POST"])
+def lstm_text():
     text_input = request.form.get("text")
     text = [cleansing(text_input)]
 
@@ -99,6 +122,33 @@ def lstm():
         "status_code": 200,
         "description": "Result of Sentiment Analysis using LSTM",
         "data": {"text": text[0], "sentiment": get_sentiment},
+    }
+
+    res_data = jsonify(json_res)
+
+    return res_data
+
+@swag_from("./docs/lstm_file.yml", methods=["POST"])
+@app.route("/lstm_file", methods=["POST"])
+def lstm_file():
+    file_input = request.files.getlist('file')[0]
+    file_content = file_input.read()
+    encoding = chardet.detect(file_content)["encoding"]
+    file_content = file_content.decode(encoding)
+
+    file = [cleansing(file_content)]
+
+    feature = lstm_tokenizer.texts_to_sequences(file)
+    feature = pad_sequences(feature, maxlen=lstm_feature.shape[1])
+
+    prediction = lstm_model.predict(feature)
+    print(prediction[0])
+    get_sentiment = sentiment[np.argmax(prediction[0])]
+
+    json_res = {
+        "status_code": 200,
+        "description": "Result of Sentiment Analysis using LSTM",
+        "data": {"text": file[0], "sentiment": get_sentiment},
     }
 
     res_data = jsonify(json_res)
