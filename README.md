@@ -8,9 +8,11 @@ Clone repository dan cd folder
 git clone git@github.com:brndnart/dsc-k4.git
 cd dsc-k4
 ```
-Buat virtual environment di dalam folder
+Buat virtual environment dan aktifkan
 ```
 python -m venv .
+source env/bin/activate // unix
+Scripts/activate // windows
 ```
 Install modul dengan pip
 ```
